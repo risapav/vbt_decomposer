@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*- 
 
 import struct
 
@@ -55,7 +56,37 @@ vbt_header_unpack = s_vbt_h.unpack_from
 bdb_header_unpack = s_dbd_h.unpack_from
 bdb_block_unpack = s_bdb_b.unpack_from
 
+def check_VBT_header(data):
+  if data[0][0:4] != MAGIC_VBT: 
+    return 1  #error
+  return 0    #success
+
+def check_BDB_header(data):
+  if data[0][0:15] != MAGIC_BDB:
+    return 1  #error
+  return 0    #success
 	
+def compute_crc8_atm(datagram, initial_value=0):
+  crc = initial_value
+  # Iterate bytes in data
+  for byte in datagram:
+    # Iterate bits in byte
+    for _ in range(0, 8):
+      if (crc >> 7) ^ (byte & 0x01):
+        crc = ((crc << 1) ^ 0x07) & 0xFF
+      else:
+        crc = (crc << 1) & 0xFF
+      # Shift to next bit
+      byte = byte >> 1
+  return crc
 	
-	
-	
+def crc8(datagram, icrc = 0):
+  # Iterate bytes in data
+  for byte in datagram:
+    crc = icrc ^ byte
+    for _ in range(8):
+      crc <<= 1
+      if crc & 0x0100:
+        crc ^= 0x07
+      crc &= 0xFF
+  return crc
