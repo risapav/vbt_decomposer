@@ -19,10 +19,18 @@ def crc(datagram, icrc = 0):
         crc &= 0xFF
     return crc
 
+def statistic(ids, a_size, a_sum, b_size, b_sum):
+    print ("records total:\t{}\n", ids)
+    print ("VBT file size:\t{}\t\tcomputed file size:\t{}\n", a_size, b_size)
+    print ("VBT file sum:\t{}\t\tcomputed file sum:\t{}\n", a_sum, b_sum)
+
 def decompose(filename):
     records = []
-    filesize = 0 
-    csum = 0  
+    vbt_size = 0
+    vbt_sum = 0
+    filesize = 0  
+    csum = 0
+    index = 0
     try:
         with open(filename, "rb") as f:
             # VBT filesize
@@ -45,6 +53,7 @@ def decompose(filename):
                 print ("nie je VBT súbor")
                 exit(1)
             records.append( str(data_u) )
+            index += 1
             
             ################################
             # BDB header should be the second
@@ -60,7 +69,8 @@ def decompose(filename):
                 print ("chyba v BDB zázname")
                 exit(1)
             records.append(str(data_u))
-            sig, ver, h_size, size = VBT.bdb_header_unpack(data_p)               
+            sig, ver, h_size, size = VBT.bdb_header_unpack(data_p)    
+            index += 1
 
             ################################
             # BDB blocks
@@ -82,6 +92,10 @@ def decompose(filename):
                     records.append(str((id, size, binascii.hexlify(data_p))))
                 else:
                     break
+               index += 1
+            
+        # prepare statistics
+       statistic(index, vbt_size, vbt_sum, filesize, csum)
     except FileNotFoundError:
         msg = "Sorry, the file "+ filename + " does not exist."
         print(msg) 
@@ -95,8 +109,11 @@ def decompose(filename):
         print(msg) 
 
 def compose(filename):
+    vbt_size = 0
+    vbt_sum = 0
     filesize = 0  
     csum = 0
+    index = 0
     try: 
         # load json file
         with open(filename + ".json", "r") as f:
@@ -107,8 +124,6 @@ def compose(filename):
 
     try:
         with open(filename + ".new.vbt", "wb") as of:
-            global index
-            index = 0
             for record in records:
                 ################################
                 # VBT header magic
@@ -146,19 +161,16 @@ def compose(filename):
                     of.write(data_p)
                     csum = crc(data_p, csum)
                     index += 1
-
-    # update vbt header
+                    
+    # prepare statistics
             data_u = eval(records[0])
             v_size = data_u[3]
             v_sum = data_u[4]
-            csum = csum - v_sum 
-            csum = 0x100 - csum 
-            csum1 = csum1 - v_sum 
-            csum1 = 0x100 - csum1             
+            statistic(index, v_size, v_sum, filesize, csum)
+    # update vbt header        
             data_p = VBT.sz_cs.pack(v_size, v_sum)
             of.seek(24,0)
             of.write(data_p)
-        csum1 = VBT.crc(filename + ".new.vbt")
     except:
         msg = "Sorry, the file " + filename + ".new.vbt" + " is not writable."
         print(msg) 
@@ -171,8 +183,7 @@ def compose(filename):
 #parser.add_argument('-d','--decompose',  help='input file is binary file.vbt',required=True)
 #parser.add_argument('-h','--help', help='usage: blabla', required=False)
 
-def statistic(a_size, a_sum, b_size, b_sum):
-    pass
+
 
 ### main code
 def main():
