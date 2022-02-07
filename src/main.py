@@ -14,16 +14,27 @@ def usage():
     print '\t\t-d disassemble file from <inputfile>[.vbt]\n'
     print '\t\t-h help\n'
     
-def crc(datagram, icrc = 0):
+#def crc(datagram, icrc = 0):
+#    # Iterate bytes in data
+#    for byte in datagram:
+#        crc = icrc ^ byte
+#        for _ in range(8):
+#            crc <<= 1
+#            if crc & 0x0100:
+#                crc ^= 0x07
+#        crc &= 0xFF
+#    return crc
+
+def calc_sum(datagram, csum):
+    sum = csum
     # Iterate bytes in data
-    for byte in datagram:
-        crc = icrc ^ byte
-        for _ in range(8):
-            crc <<= 1
-            if crc & 0x0100:
-                crc ^= 0x07
-        crc &= 0xFF
-    return crc
+    for byte in datagram:    
+        sum += sum
+    return sum & 0xFF
+
+def calc_crc(csum)
+    crc = 0x100 - csum 
+    return crc & 0xFF
 
 def statistic(ids, a_size, a_sum, b_size, b_sum):
     print ("records total:\t{}\n", ids)
@@ -52,7 +63,7 @@ def decompose(filename):
                 print ("nothing to do")
                 exit(1)
             filesize -= VBT.vbt_header_size
-            csum = crc(data_p, csum)
+            csum = calc_sum(data_p, csum)
            
             data_u = VBT.vbt_header_unpack(data_p)
             if VBT.check_VBT_header(data_u):
@@ -68,7 +79,7 @@ def decompose(filename):
                 print ("nothing to do")
                 exit(1)     
             filesize -= VBT.bdb_header_size
-            csum = crc(data_p, csum)
+            csum = calc_sum(data_p, csum)
 
             data_u = VBT.bdb_header_unpack(data_p)
             if VBT.check_BDB_header(data_u) :
@@ -86,14 +97,14 @@ def decompose(filename):
                     data_p = f.read(VBT.bdb_block_size)
                     if not data_p: 
                         break
-                    csum = crc(data_p, csum)
+                    csum = calc_sum(data_p, csum)
                     id, size = VBT.bdb_block_unpack(data_p)
                     filesize -= size
                     if filesize >= 0 :
                         data_p = f.read(size)
                     else:
                         break
-                    csum = crc(data_p, csum)
+                    csum = calc_sum(data_p, csum)
                     #records.append((id, size, str(binascii.hexlify(data_p))))
                     records.append(str((id, size, binascii.hexlify(data_p))))
                 else:
@@ -101,7 +112,7 @@ def decompose(filename):
                index += 1
             
         # prepare statistics
-       statistic(index, vbt_size, vbt_sum, filesize, csum)
+       statistic(index, vbt_size, vbt_sum, filesize, calc_crc(csum))
     except FileNotFoundError:
         msg = "Sorry, the file "+ filename + " does not exist."
         print(msg) 
@@ -142,7 +153,7 @@ def compose(filename):
                         data_p = VBT.s_vbt_h.pack(*data_u)
                         filesize += VBT.vbt_header_size
                         of.write(data_p)
-                        csum = crc(data_p, csum)
+                        csum = calc_sum(data_p, csum)
                    index += 1
                 ################################
                 # BDB header magic
@@ -155,7 +166,7 @@ def compose(filename):
                         data_p = VBT.s_dbd_h.pack(*data_u)
                         filesize += VBT.bdb_header_size
                         of.write(data_p)
-                        csum = crc(data_p, csum)
+                        csum = calc_sum(data_p, csum)
                     index += 1
                 ################################
                 # BDB block magic
@@ -165,14 +176,14 @@ def compose(filename):
                     data_p = VBT.s_bdb_b.pack(id, size) + binascii.unhexlify(block)
                     filesize += VBT.bdb_block_size + size
                     of.write(data_p)
-                    csum = crc(data_p, csum)
+                    csum = calc_sum(data_p, csum)
                     index += 1
                     
     # prepare statistics
             data_u = eval(records[0])
             v_size = data_u[3]
             v_sum = data_u[4]
-            statistic(index, v_size, v_sum, filesize, csum)
+            statistic(index, v_size, v_sum, filesize, calc_crc(csum))
     # update vbt header        
             data_p = VBT.sz_cs.pack(v_size, v_sum)
             of.seek(24,0)
