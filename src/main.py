@@ -8,6 +8,12 @@ import zlib
 import json
 import binascii
 
+def usage():
+    print 'usage: vbt_decomposer.py -<command> <inputfile>\n'
+    print '\t\t-c assemble file from <inputfile>[.json]\n'
+    print '\t\t-d disassemble file from <inputfile>[.vbt]\n'
+    print '\t\t-h help\n'
+    
 def crc(datagram, icrc = 0):
     # Iterate bytes in data
     for byte in datagram:
@@ -174,12 +180,6 @@ def compose(filename):
     except:
         msg = "Sorry, the file " + filename + ".new.vbt" + " is not writable."
         print(msg) 
-
-def usage():
-    print 'usage: vbt_decomposer.py -<command> <inputfile>\n'
-    print '\t\t-c assemble file from <inputfile>[.json]\n'
-    print '\t\t-d disassemble file from <inputfile>[.vbt]\n'
-    print '\t\t-h help\n'
 
 ### main code
 def main(argv):
