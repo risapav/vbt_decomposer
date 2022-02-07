@@ -108,39 +108,3 @@ def crc(filename, csum = 0):
     msg = "Sorry, the file "+ filename + " does not exist."
     print(msg) 
   return crc8 & 0xFF
-
-#/**
-#This function will update the VBT checksum.
-#@param[in out] VbtPtr - Pointer to VBT table
-#@retval none
-#**/
-#VOID
-#UpdateVbtChecksum(
-#  VBT_TABLE_DATA *VbtPtr
-#  )
-#{
-#  UINT8           Checksum;
-#  UINT8           *VbtStartAddress;
-#  UINT8           *VbtEndAddress;
-#
-#  VbtStartAddress = (UINT8 *)(UINTN)VbtPtr;
-#  VbtEndAddress = VbtStartAddress + (VbtPtr->VbtHeader.Table_Size);
-
-#  Checksum = 0;
-
-#  //
-#  // Compute the checksum
-#  //
-#  while (VbtStartAddress != VbtEndAddress) {
-#    Checksum = Checksum + (*VbtStartAddress);
-#    VbtStartAddress = VbtStartAddress + 1;
-#  }
-#  Checksum = Checksum - VbtPtr->VbtHeader.Checksum;
-#  Checksum = (UINT8)(0x100 - Checksum);
-
- # //
- # // Update the checksum
- # //
- # VbtPtr->VbtHeader.Checksum = Checksum;
-
-#}
