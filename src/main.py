@@ -49,7 +49,9 @@ def decompose(filename):
     csum = 0
     index = 0
     try:
-        with open(filename, "rb") as f:
+        jsonfile = filename + ".json"
+        binfile = filename
+        with open(binfile, "rb") as f:
             # VBT filesize
             f.seek(0,2)
             filesize = f.tell()
@@ -114,15 +116,15 @@ def decompose(filename):
         # prepare statistics
        statistic(index, vbt_size, vbt_sum, filesize, calc_crc(csum))
     except FileNotFoundError:
-        msg = "Sorry, the file "+ filename + " does not exist."
+        msg = "Sorry, the file "+ binfile + " does not exist."
         print(msg) 
         
     try:
         # create json file
-        with open(filename + ".json", "w") as of:
+        with open(jsonfile, "w") as of:
             of.write(json.dumps(records, sort_keys = False, ensure_ascii=True, indent = 2))
     except:
-        msg = "Sorry, the file " + filename + ".json" + " is not writtable."
+        msg = "Sorry, the file " + jsonfile + " is not writtable."
         print(msg) 
 
 def compose(filename):
@@ -133,14 +135,16 @@ def compose(filename):
     index = 0
     try: 
         # load json file
-        with open(filename + ".json", "r") as f:
+        jsonfile = filename + ".json"
+        with open(jsonfile, "r") as f:
             records = json.load(f)
     except:
-        msg = "Sorry, the file " + filename + ".json" + " is not available."
+        msg = "Sorry, the file " + jsonfile + " is not available."
         print(msg) 
 
     try:
-        with open(filename + ".new.vbt", "wb") as of:
+        binfile = filename + ".new.vbt"
+        with open(binfile, "wb") as of:
             for record in records:
                 ################################
                 # VBT header magic
@@ -189,7 +193,7 @@ def compose(filename):
             of.seek(24,0)
             of.write(data_p)
     except:
-        msg = "Sorry, the file " + filename + ".new.vbt" + " is not writable."
+        msg = "Sorry, the file " + binfile + " is not writable."
         print(msg) 
 
 ### main code
