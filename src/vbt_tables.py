@@ -90,3 +90,57 @@ def crc8(datagram, icrc = 0):
         crc ^= 0x07
       crc &= 0xFF
   return crc
+
+def crc(filename, csum = 0):
+  try:
+    index = 0
+    crc8 = csum
+    with open(filename, "rb") as f:
+      content = f.read() 
+      for byte in reversed(content):
+        crc8 = ( crc8 + byte ) & 0xFF
+        index += 1
+        if crc8 == 58 or (0x100 - crc8) == 58:
+          print("{} {} {}", crc8, index,  (0x100 - crc8) )
+      crc8 = 0x100 - crc8
+      print("{} {} {}", crc8, index,  (0x100 - crc8) )
+  except FileNotFoundError:
+    msg = "Sorry, the file "+ filename + " does not exist."
+    print(msg) 
+  return crc8 & 0xFF
+
+#/**
+#This function will update the VBT checksum.
+#@param[in out] VbtPtr - Pointer to VBT table
+#@retval none
+#**/
+#VOID
+#UpdateVbtChecksum(
+#  VBT_TABLE_DATA *VbtPtr
+#  )
+#{
+#  UINT8           Checksum;
+#  UINT8           *VbtStartAddress;
+#  UINT8           *VbtEndAddress;
+#
+#  VbtStartAddress = (UINT8 *)(UINTN)VbtPtr;
+#  VbtEndAddress = VbtStartAddress + (VbtPtr->VbtHeader.Table_Size);
+
+#  Checksum = 0;
+
+#  //
+#  // Compute the checksum
+#  //
+#  while (VbtStartAddress != VbtEndAddress) {
+#    Checksum = Checksum + (*VbtStartAddress);
+#    VbtStartAddress = VbtStartAddress + 1;
+#  }
+#  Checksum = Checksum - VbtPtr->VbtHeader.Checksum;
+#  Checksum = (UINT8)(0x100 - Checksum);
+
+ # //
+ # // Update the checksum
+ # //
+ # VbtPtr->VbtHeader.Checksum = Checksum;
+
+#}

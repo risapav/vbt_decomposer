@@ -79,8 +79,8 @@ def decompose(filename):
 
 def compose(filename):
     filesize = 0  
-    csum = 0xff
-    csum1 = csum
+    csum = 0
+    csum1 = 0
     try: 
         # load json file
         with open(filename + ".json", "r") as f:
@@ -101,8 +101,8 @@ def compose(filename):
                         data_p = VBT.s_vbt_h.pack(*data_u)
                         filesize += VBT.vbt_header_size
                         of.write(data_p)
-  #                      csum = VBT.compute_crc8_atm(data_p, csum)
-  #                      csum1 = VBT.crc8(data_p, csum1)
+  #                      csum = VBT.crc(data_p, csum)
+   #                     csum1 = VBT.crc8(data_p, csum1)
                         index += 1
                 ################################
                 # BDB header magic
@@ -115,8 +115,8 @@ def compose(filename):
                         data_p = VBT.s_dbd_h.pack(*data_u)
                         filesize += VBT.bdb_header_size
                         of.write(data_p)
-     #                   csum = VBT.compute_crc8_atm(data_p, csum)
-      #                  csum1 = VBT.crc8(data_p, csum1)
+    #                    csum = VBT.crc(data_p, csum)
+     #                   csum1 = VBT.crc8(data_p, csum1)
                         index += 1
                 ################################
                 # BDB block magic
@@ -126,17 +126,22 @@ def compose(filename):
                     data_p = VBT.s_bdb_b.pack(id, size) + binascii.unhexlify(block)
                     filesize += VBT.bdb_block_size + size
                     of.write(data_p)
-                    csum = VBT.compute_crc8_atm(data_p, csum)
-                    csum1 = VBT.crc8(data_p, csum1)
+  #                  csum = VBT.crc(data_p, csum)
+   #                 csum1 = VBT.crc8(data_p, csum1)
                     index += 1
 
     # update vbt header
             data_u = eval(records[0])
             v_size = data_u[3]
             v_sum = data_u[4]
+            csum = csum - v_sum 
+            csum = 0x100 - csum 
+            csum1 = csum1 - v_sum 
+            csum1 = 0x100 - csum1             
             data_p = VBT.sz_cs.pack(v_size, v_sum)
             of.seek(24,0)
             of.write(data_p)
+        csum1 = VBT.crc(filename + ".new.vbt")
     except FileNotFoundError:
         msg = "Sorry, the file "+ filename + " does not exist."
         print(msg) 
