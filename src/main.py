@@ -8,6 +8,17 @@ import zlib
 import json
 import binascii
 
+def crc(datagram, icrc = 0):
+    # Iterate bytes in data
+    for byte in datagram:
+        crc = icrc ^ byte
+        for _ in range(8):
+            crc <<= 1
+            if crc & 0x0100:
+                crc ^= 0x07
+        crc &= 0xFF
+    return crc
+
 def decompose(filename):
     records = []
     filesize = 0 
@@ -27,6 +38,7 @@ def decompose(filename):
                 print ("nothing to do")
                 exit(1)
             filesize -= VBT.vbt_header_size
+            csum = crc(data_p, csum)
            
             data_u = VBT.vbt_header_unpack(data_p)
             if VBT.check_VBT_header(data_u):
@@ -41,6 +53,7 @@ def decompose(filename):
                 print ("nothing to do")
                 exit(1)     
             filesize -= VBT.bdb_header_size
+            csum = crc(data_p, csum)
 
             data_u = VBT.bdb_header_unpack(data_p)
             if VBT.check_BDB_header(data_u) :
@@ -57,12 +70,14 @@ def decompose(filename):
                     data_p = f.read(VBT.bdb_block_size)
                     if not data_p: 
                         break
+                    csum = crc(data_p, csum)
                     id, size = VBT.bdb_block_unpack(data_p)
                     filesize -= size
                     if filesize >= 0 :
                         data_p = f.read(size)
                     else:
                         break
+                    csum = crc(data_p, csum)
                     #records.append((id, size, str(binascii.hexlify(data_p))))
                     records.append(str((id, size, binascii.hexlify(data_p))))
                 else:
@@ -106,9 +121,8 @@ def compose(filename):
                         data_p = VBT.s_vbt_h.pack(*data_u)
                         filesize += VBT.vbt_header_size
                         of.write(data_p)
-  #                      csum = VBT.crc(data_p, csum)
-   #                     csum1 = VBT.crc8(data_p, csum1)
-                        index += 1
+                        csum = crc(data_p, csum)
+                   index += 1
                 ################################
                 # BDB header magic
                 elif index == 1: 
@@ -120,9 +134,8 @@ def compose(filename):
                         data_p = VBT.s_dbd_h.pack(*data_u)
                         filesize += VBT.bdb_header_size
                         of.write(data_p)
-    #                    csum = VBT.crc(data_p, csum)
-     #                   csum1 = VBT.crc8(data_p, csum1)
-                        index += 1
+                        csum = crc(data_p, csum)
+                    index += 1
                 ################################
                 # BDB block magic
                 else: 
@@ -131,8 +144,7 @@ def compose(filename):
                     data_p = VBT.s_bdb_b.pack(id, size) + binascii.unhexlify(block)
                     filesize += VBT.bdb_block_size + size
                     of.write(data_p)
-  #                  csum = VBT.crc(data_p, csum)
-   #                 csum1 = VBT.crc8(data_p, csum1)
+                    csum = crc(data_p, csum)
                     index += 1
 
     # update vbt header
