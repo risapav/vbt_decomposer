@@ -32,7 +32,7 @@ def calc_sum(datagram, csum):
         sum += sum
     return sum & 0xFF
 
-def calc_crc(csum)
+def calc_crc(csum):
     crc = 0x100 - csum 
     return crc & 0xFF
 
@@ -206,8 +206,8 @@ def main(argv):
                 filename = arg
                 compose(filename)
             elif opt in ("-d"):
+                filename = arg
                 decompose(filename)
-                cmd = "-d"
             else:
                 usage()
                 sys.exit(2)        
