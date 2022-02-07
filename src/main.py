@@ -26,28 +26,28 @@ def decompose(filename):
             if not data_p: 
                 print ("nothing to do")
                 exit(1)
-            
+            filesize -= VBT.vbt_header_size
+           
             data_u = VBT.vbt_header_unpack(data_p)
             if VBT.check_VBT_header(data_u):
                 print ("nie je VBT súbor")
                 exit(1)
             records.append( str(data_u) )
-            filesize -= VBT.vbt_header_size
-
+            
             ################################
             # BDB header should be the second
             data_p = f.read(VBT.bdb_header_size)
             if not data_p: 
                 print ("nothing to do")
                 exit(1)     
+            filesize -= VBT.bdb_header_size
 
-            sig, ver, h_size, size = VBT.bdb_header_unpack(data_p)   
             data_u = VBT.bdb_header_unpack(data_p)
             if VBT.check_BDB_header(data_u) :
                 print ("chyba v BDB zázname")
                 exit(1)
             records.append(str(data_u))
-            filesize -= VBT.bdb_header_size
+            sig, ver, h_size, size = VBT.bdb_header_unpack(data_p)               
 
             ################################
             # BDB blocks
@@ -67,25 +67,30 @@ def decompose(filename):
                     records.append(str((id, size, binascii.hexlify(data_p))))
                 else:
                     break
-
-        # create json file
-        with open(filename + ".json", "w") as of:
-            of.write(json.dumps(records, sort_keys = False, ensure_ascii=True, indent = 2))
-
     except FileNotFoundError:
         msg = "Sorry, the file "+ filename + " does not exist."
         print(msg) 
-
+        
+    try:
+        # create json file
+        with open(filename + ".json", "w") as of:
+            of.write(json.dumps(records, sort_keys = False, ensure_ascii=True, indent = 2))
+    except:
+        msg = "Sorry, the file " + filename + ".json" + " is not writtable."
+        print(msg) 
 
 def compose(filename):
     filesize = 0  
     csum = 0
-    csum1 = 0
     try: 
         # load json file
         with open(filename + ".json", "r") as f:
             records = json.load(f)
+    except:
+        msg = "Sorry, the file " + filename + ".json" + " is not available."
+        print(msg) 
 
+    try:
         with open(filename + ".new.vbt", "wb") as of:
             global index
             index = 0
@@ -142,8 +147,8 @@ def compose(filename):
             of.seek(24,0)
             of.write(data_p)
         csum1 = VBT.crc(filename + ".new.vbt")
-    except FileNotFoundError:
-        msg = "Sorry, the file "+ filename + " does not exist."
+    except:
+        msg = "Sorry, the file " + filename + ".new.vbt" + " is not writable."
         print(msg) 
 
 #
