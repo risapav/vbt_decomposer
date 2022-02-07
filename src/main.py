@@ -175,31 +175,36 @@ def compose(filename):
         msg = "Sorry, the file " + filename + ".new.vbt" + " is not writable."
         print(msg) 
 
-#
-#import argparse
-
-#parser = argparse.ArgumentParser(description='Dump data.vbt file')
-#parser.add_argument('-c','--compose',  help='input file is textfile file.json', required=True)
-#parser.add_argument('-d','--decompose',  help='input file is binary file.vbt',required=True)
-#parser.add_argument('-h','--help', help='usage: blabla', required=False)
-
-
+def usage():
+    print 'usage: vbt_decomposer.py -<command> <inputfile>\n'
+    print '\t\t-c assemble file from <inputfile>[.json]\n'
+    print '\t\t-d disassemble file from <inputfile>[.vbt]\n'
+    print '\t\t-h help\n'
 
 ### main code
-def main():
+def main(argv):
+    filename = ''
     # otvoriť súbor data.vbt
     filename = "old.vbt"
-    #filename = "new.vbt"
+    #filename = "new.vbt"    
 
-    decompile = False
-    #decompile = True
-#    args = parser.parse_args()
-#    print(args.echo)
-    if decompile:
-        decompose(filename)
-    else:
-        compose(filename)
-
+    try:
+        opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+        for opt, arg in opts:
+            if opt in ("-c"):
+                filename = arg
+                compose(filename)
+            elif opt in ("-d"):
+                decompose(filename)
+                cmd = "-d"
+            else:
+                usage()
+                sys.exit(2)        
+        
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+        
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
