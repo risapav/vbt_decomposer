@@ -10,7 +10,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/main.py",
-            "args" : ["-c", "x330.vbt.json"],
+            "args" : ["-c", "old.vbt.json"],
             "console": "integratedTerminal"
         },
         {
@@ -18,7 +18,7 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/main.py",
-            "args" : ["-d", "x330.vbt"],
+            "args" : ["-d", "old.vbt"],
             "console": "integratedTerminal"
         },                
         {
