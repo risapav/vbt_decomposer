@@ -36,7 +36,7 @@ def calc_sum(buffer, csum):
     return sum & 0xFF
 
 def calc_crc(csum, sum):
-    crc = 0x100 - (csum -sum) & 0xFF
+    crc = 0x100 - (csum -sum) 
   #  crc = - (csum - sum)
  #   crc = csum - sum
     return crc & 0xFF
@@ -128,6 +128,8 @@ def decompose(filename):
 
             statistic(v_size, v_sum, f_size, calc_crc(f_sum, v_sum))
 
+            f_sum = 0
+
             ################################
             # BDB blocks
             while True:
@@ -152,6 +154,7 @@ def decompose(filename):
             
         # prepare statistics
         statistic(v_size, v_sum, f_size, calc_crc(f_sum, v_sum))
+        #statistic(v_size, v_sum, f_size, f_sum)
 
     except FileNotFoundError:
         msg = "Sorry, the file "+ binfile + " does not exist."
